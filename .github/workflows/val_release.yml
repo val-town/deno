@@ -1,0 +1,41 @@
+name: version_bump
+
+on:
+  [push]
+
+  # push:
+  #   tags:
+  #     - "v[0-9]+.[0-9]+.[0-9]+-vt.[0-9]+"
+jobs:
+  build:
+    name: linux binary release
+    runs-on: ubuntu-22.04
+
+    env:
+      CARGO_TERM_COLOR: always
+      RUST_BACKTRACE: full
+      RUSTC_FORCE_INCREMENTAL: 1
+
+    steps:
+      - name: Configure git
+        run: |
+          git config --global core.symlinks true
+          git config --global fetch.parallel 32
+
+      - name: Clone repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 5
+          submodules: false
+
+      - uses: dsherret/rust-toolchain-file@v1
+
+      - name: Install protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          version: "21.12"
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Build release
+        run: |
+          cargo build --release
